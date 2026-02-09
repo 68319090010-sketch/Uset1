@@ -8,47 +8,35 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #e0e5ec; --shadow: #a3b1c6; --light: #ffffff; --primary: #4a90e2; --danger: #e74c3c; --success: #2ecc71; }
-        body { background-color: var(--bg); font-family: 'Kanit', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #444; }
+        :root { --bg: #e0e5ec; --shadow: #a3b1c6; --light: #ffffff; --primary: #4a90e2; }
+        body { background-color: var(--bg); font-family: 'Kanit', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { width: 90%; max-width: 400px; padding: 30px; background: var(--bg); border-radius: 30px; box-shadow: 20px 20px 60px var(--shadow), -20px -20px 60px var(--light); text-align: center; }
         .card { margin: 15px 0; padding: 15px; border-radius: 20px; box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
         .value { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
         .label { font-size: 0.85rem; color: #777; }
-        
-        /* ปุ่มเปิด-ปิด */
-        .btn-toggle {
-            width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--bg);
-            box-shadow: 6px 6px 12px var(--shadow), -6px -6px 12px var(--light);
-            cursor: pointer; transition: 0.3s; margin-top: 20px; outline: none;
-        }
+        .btn-toggle { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--bg); box-shadow: 6px 6px 12px var(--shadow), -6px -6px 12px var(--light); cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-toggle:active { box-shadow: inset 4px 4px 8px var(--shadow), inset -4px -4px 8px var(--light); }
-        .btn-on { color: var(--success); }
-        .btn-off { color: var(--danger); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Water Monitoring</h2>
-    
     <div class="card">
         <span class="label">อุณหภูมิอากาศ</span>
         <span id="temp" class="value">--</span><span class="label">°C</span>
     </div>
-
     <div class="card">
         <span class="label">ความชื้นสัมพัทธ์</span>
         <span id="hum" class="value">--</span><span class="label">% RH</span>
     </div>
-
     <div class="card">
         <span class="label">ระดับน้ำ (ระยะห่าง)</span>
         <span id="dist" class="value">--</span><span class="label">cm</span>
     </div>
-
-    <button id="buzzerBtn" class="btn-toggle btn-on" onclick="toggleBuzzer()">
+    <button class="btn-toggle" onclick="toggleBuzzer()">
         <span id="buzzerIcon" style="font-size: 30px;">🔊</span>
-        <span id="buzzerText" class="label">เปิดเสียงอยู่</span>
+        <p id="buzzerLabel" class="label">เปิดเสียง</p>
     </button>
 </div>
 
@@ -65,9 +53,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentBuzzerState = 1; // เริ่มต้นที่เปิด (1)
+    let buzzerStatus = 1;
 
-    // ฟังค่าจาก Firebase เพื่ออัปเดตหน้าเว็บ
     db.ref('WaterProject').on('value', (snapshot) => {
         const data = snapshot.val();
         if(data) {
@@ -75,35 +62,15 @@
             document.getElementById('hum').innerText = data.humidity ? data.humidity.toFixed(1) : "--";
             document.getElementById('dist').innerText = data.distance ? data.distance.toFixed(1) : "--";
             
-            // อัปเดตสถานะปุ่มจาก Firebase
-            if(data.buzzerStatus !== undefined) {
-                currentBuzzerState = data.buzzerStatus;
-                updateButtonUI(currentBuzzerState);
-            }
+            buzzerStatus = data.buzzerStatus !== undefined ? data.buzzerStatus : 1;
+            document.getElementById('buzzerIcon').innerText = buzzerStatus === 1 ? "🔊" : "🔇";
+            document.getElementById('buzzerLabel').innerText = buzzerStatus === 1 ? "เปิดเสียง" : "ปิดเสียง";
         }
     });
 
     function toggleBuzzer() {
-        const newState = currentBuzzerState === 1 ? 0 : 1;
-        db.ref('WaterProject/buzzerStatus').set(newState);
-    }
-
-    function updateButtonUI(state) {
-        const btn = document.getElementById('buzzerBtn');
-        const icon = document.getElementById('buzzerIcon');
-        const text = document.getElementById('buzzerText');
-        
-        if(state === 1) {
-            btn.className = "btn-toggle btn-on";
-            icon.innerText = "🔊";
-            text.innerText = "เปิดเสียงอยู่";
-            text.style.color = "#2ecc71";
-        } else {
-            btn.className = "btn-toggle btn-off";
-            icon.innerText = "🔇";
-            text.innerText = "ปิดเสียงอยู่";
-            text.style.color = "#e74c3c";
-        }
+        const nextStatus = buzzerStatus === 1 ? 0 : 1;
+        db.ref('WaterProject/buzzerStatus').set(nextStatus);
     }
 </script>
 </body>
