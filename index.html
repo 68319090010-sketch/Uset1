@@ -7,34 +7,37 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
-    
     <style>
         :root { --bg: #e0e5ec; --shadow: #a3b1c6; --light: #ffffff; --primary: #4a90e2; }
-        body { background-color: var(--bg); font-family: 'Kanit', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        body { background-color: var(--bg); font-family: 'Kanit', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #444; }
         .container { width: 90%; max-width: 400px; padding: 30px; background: var(--bg); border-radius: 30px; box-shadow: 20px 20px 60px var(--shadow), -20px -20px 60px var(--light); text-align: center; }
-        .card { margin: 20px 0; padding: 20px; border-radius: 20px; box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
-        .value { font-size: 2.5rem; font-weight: bold; color: var(--primary); }
-        .label { font-size: 0.9rem; color: #777; display: block; }
-        .btn-control { width: 100px; height: 100px; border-radius: 50%; border: none; background: var(--bg); box-shadow: 8px 8px 16px var(--shadow), -8px -8px 16px var(--light); cursor: pointer; transition: 0.2s; }
-        .btn-control:active { box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
+        .card { margin: 15px 0; padding: 15px; border-radius: 20px; box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
+        .value { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
+        .label { font-size: 0.85rem; color: #777; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Water Monitoring</h1>
+    <h2>Water Monitoring</h2>
+    
     <div class="card">
         <span class="label">อุณหภูมิอากาศ</span>
-        <span id="temp" class="value">--</span> <span class="label">°C</span>
+        <span id="temp" class="value">--</span>
+        <span class="label">°C</span>
     </div>
+
+    <div class="card">
+        <span class="label">ความชื้นสัมพัทธ์</span>
+        <span id="hum" class="value">--</span>
+        <span class="label">% RH</span>
+    </div>
+
     <div class="card">
         <span class="label">ระดับน้ำ (ระยะห่าง)</span>
-        <span id="dist" class="value">--</span> <span class="label">cm</span>
+        <span id="dist" class="value">--</span>
+        <span class="label">cm</span>
     </div>
-    <button class="btn-control" onclick="toggleSound()">
-        <span id="sound-icon" style="font-size: 30px;">🔔</span>
-        <span id="sound-text" class="label">เปิดเสียง</span>
-    </button>
 </div>
 
 <script>
@@ -50,19 +53,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ดึงข้อมูล Real-time
     db.ref('WaterProject').on('value', (snapshot) => {
         const data = snapshot.val();
         if(data) {
             document.getElementById('temp').innerText = data.temperature ? data.temperature.toFixed(1) : "--";
+            document.getElementById('hum').innerText = data.humidity ? data.humidity.toFixed(1) : "--";
             document.getElementById('dist').innerText = data.distance ? data.distance.toFixed(1) : "--";
         }
     });
-
-    function toggleSound() {
-        // โค้ดส่งค่าไปคุม Buzzer สามารถเพิ่มต่อได้ที่นี่
-        alert("กดปุ่มทดสอบระบบสำเร็จ!");
-    }
 </script>
 </body>
 </html>
