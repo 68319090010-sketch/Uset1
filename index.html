@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Water Dashboard</title>
+    <script src="https://www.gstatic.com"></script>
+    <script src="https://www.gstatic.com"></script>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #e0e5ec;
+            --shadow: #a3b1c6;
+            --light: #ffffff;
+            --primary: #4a90e2;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Kanit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #444;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            background: var(--bg);
+            border-radius: 30px;
+            box-shadow: 20px 20px 60px var(--shadow), -20px -20px 60px var(--light);
+            text-align: center;
+        }
+
+        h1 { font-weight: 500; margin-bottom: 30px; font-size: 1.5rem; }
+
+        .card {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light);
+        }
+
+        .value { font-size: 2.5rem; font-weight: bold; color: var(--primary); display: block; }
+        .label { font-size: 0.9rem; color: #777; }
+
+        /* ปุ่มกดแบบเด้งสู้มือ (Neumorphic Button) */
+        .btn-control {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg);
+            box-shadow: 8px 8px 16px var(--shadow), -8px -8px 16px var(--light);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        /* เอฟเฟกต์ตอนกดปุ่ม จังหวะนี้จะรู้สึกเหมือนปุ่มยุบลงไปจริง */
+        .btn-control:active {
+            box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light);
+            transform: scale(0.95);
+        }
+
+        .btn-control i { font-size: 24px; margin-bottom: 5px; }
+        .on { color: #2ecc71; }
+        .off { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Water Monitoring</h1>
+    
+    <div class="card">
+        <span class="label">อุณหภูมิอากาศ</span>
+        <span id="temp" class="value">--</span>
+        <span class="label">°C</span>
+    </div>
+
+    <div class="card">
+        <span class="label">ระดับน้ำ (ระยะห่าง)</span>
+        <span id="dist" class="value">--</span>
+        <span class="label">cm</span>
+    </div>
+
+    <!-- ปุ่มควบคุมเสียง/ระบบ -->
+    <button class="btn-control" onclick="toggleSound()">
+        <span id="sound-icon" style="font-size: 30px;">🔔</span>
+        <span id="sound-text" class="label">เปิดเสียง</span>
+    </button>
+</div>
+
+<!-- เสียง Click สำหรับปุ่ม -->
+<audio id="click-sound" src="https://www.soundjay.com"></audio>
+
+<script>
+    // --- เปลี่ยน Firebase Config ของคุณตรงนี้ ---
+    const firebaseConfig = {
+  apiKey: "AIzaSyCGbFF56TFOq2QhoROsBaCXAMEf9I6hmPw",
+  authDomain: "uset1-d74f2.firebaseapp.com",
+  databaseURL: "https://uset1-d74f2-default-rtdb.firebaseio.com",
+  projectId: "uset1-d74f2",
+  storageBucket: "uset1-d74f2.firebasestorage.app",
+  messagingSenderId: "777746620640",
+  appId: "1:777746620640:web:6b683c0e748ef08c7b7085",
+  measurementId: "G-K4S1WFVWCC"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let isSoundOn = false;
+    const soundBtn = document.getElementById('sound-icon');
+    const soundText = document.getElementById('sound-text');
+    const audio = document.getElementById('click-sound');
+
+    function toggleSound() {
+        isSoundOn = !isSoundOn;
+        audio.play(); // เล่นเสียง Click ทุกครั้งที่กด
+        
+        if(isSoundOn) {
+            soundBtn.innerText = "🔊";
+            soundText.innerText = "เปิดเสียงอยู่";
+            soundText.style.color = "#2ecc71";
+        } else {
+            soundBtn.innerText = "🔔";
+            soundText.innerText = "ปิดเสียงอยู่";
+            soundText.style.color = "#777";
+        }
+        
+        // ส่งสถานะกลับไป Firebase เผื่อเอาไปคุม Buzzer ที่บอร์ด
+        db.ref('WaterProject/soundStatus').set(isSoundOn ? 1 : 0);
+    }
+
+    // อัปเดตข้อมูล Real-time
+    db.ref('WaterProject').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if(data) {
+            document.getElementById('temp').innerText = data.temperature ? data.temperature.toFixed(1) : "--";
+            document.getElementById('dist').innerText = data.distance ? data.distance.toFixed(1) : "--";
+        }
+    });
+</script>
+
+</body>
+</html>
