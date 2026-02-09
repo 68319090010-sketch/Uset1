@@ -10,11 +10,11 @@
     <style>
         :root { --bg: #e0e5ec; --shadow: #a3b1c6; --light: #ffffff; --primary: #4a90e2; }
         body { background-color: var(--bg); font-family: 'Kanit', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 400px; padding: 30px; background: var(--bg); border-radius: 30px; box-shadow: 20px 20px 60px var(--shadow), -20px -20px 60px var(--light); text-align: center; }
-        .card { margin: 15px 0; padding: 15px; border-radius: 20px; box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
-        .value { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
+        .container { width: 90%; max-width: 400px; padding: 25px; background: var(--bg); border-radius: 30px; box-shadow: 20px 20px 60px var(--shadow), -20px -20px 60px var(--light); text-align: center; }
+        .card { margin: 12px 0; padding: 12px; border-radius: 20px; box-shadow: inset 6px 6px 12px var(--shadow), inset -6px -6px 12px var(--light); }
+        .value { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; }
         .label { font-size: 0.85rem; color: #777; }
-        .btn-toggle { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--bg); box-shadow: 6px 6px 12px var(--shadow), -6px -6px 12px var(--light); cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-toggle { width: 70px; height: 70px; border-radius: 50%; border: none; background: var(--bg); box-shadow: 6px 6px 12px var(--shadow), -6px -6px 12px var(--light); cursor: pointer; transition: 0.2s; margin-top: 10px; outline: none; }
         .btn-toggle:active { box-shadow: inset 4px 4px 8px var(--shadow), inset -4px -4px 8px var(--light); }
     </style>
 </head>
@@ -23,20 +23,25 @@
 <div class="container">
     <h2>Water Monitoring</h2>
     <div class="card">
-        <span class="label">อุณหภูมิอากาศ</span>
+        <span class="label">🌡️ อุณหภูมิอากาศ</span>
         <span id="temp" class="value">--</span><span class="label">°C</span>
     </div>
     <div class="card">
-        <span class="label">ความชื้นสัมพัทธ์</span>
+        <span class="label">💧 ความชื้นสัมพัทธ์</span>
         <span id="hum" class="value">--</span><span class="label">% RH</span>
     </div>
     <div class="card">
-        <span class="label">ระดับน้ำ (ระยะห่าง)</span>
+        <span class="label">📏 ระดับน้ำ (ระยะ)</span>
         <span id="dist" class="value">--</span><span class="label">cm</span>
     </div>
+    <div class="card">
+        <span class="label">☀️ ความเข้มแสง</span>
+        <span id="light" class="value">--</span><span class="label">%</span>
+    </div>
+
     <button class="btn-toggle" onclick="toggleBuzzer()">
-        <span id="buzzerIcon" style="font-size: 30px;">🔊</span>
-        <p id="buzzerLabel" class="label">เปิดเสียง</p>
+        <span id="buzzerIcon" style="font-size: 24px;">🔊</span>
+        <p id="buzzerLabel" style="font-size: 0.7rem; margin: 2px 0;">เปิดเสียง</p>
     </button>
 </div>
 
@@ -52,7 +57,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     let buzzerStatus = 1;
 
     db.ref('WaterProject').on('value', (snapshot) => {
@@ -61,6 +65,7 @@
             document.getElementById('temp').innerText = data.temperature ? data.temperature.toFixed(1) : "--";
             document.getElementById('hum').innerText = data.humidity ? data.humidity.toFixed(1) : "--";
             document.getElementById('dist').innerText = data.distance ? data.distance.toFixed(1) : "--";
+            document.getElementById('light').innerText = data.light !== undefined ? data.light : "--";
             
             buzzerStatus = data.buzzerStatus !== undefined ? data.buzzerStatus : 1;
             document.getElementById('buzzerIcon').innerText = buzzerStatus === 1 ? "🔊" : "🔇";
@@ -69,8 +74,7 @@
     });
 
     function toggleBuzzer() {
-        const nextStatus = buzzerStatus === 1 ? 0 : 1;
-        db.ref('WaterProject/buzzerStatus').set(nextStatus);
+        db.ref('WaterProject/buzzerStatus').set(buzzerStatus === 1 ? 0 : 1);
     }
 </script>
 </body>
